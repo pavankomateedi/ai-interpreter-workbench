@@ -1,0 +1,18 @@
+# What NOT to include in the Elastic Beanstalk source bundle. EB builds the
+# image from the Dockerfile, so dependencies and build outputs are recreated
+# there and must not be uploaded. Source, package manifests, the lockfile,
+# pnpm-workspace.yaml, the Dockerfile, and .platform/ ARE included.
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+coverage/
+eval-results/
+test-results/
+playwright-report/
+.git/
+*.log
+**/.env
+**/.env.*
+docs/assignment.pdf

@@ -1,0 +1,17 @@
+**/node_modules
+**/dist
+**/build
+**/.vite
+**/coverage
+**/*.tsbuildinfo
+playwright-report
+test-results
+eval-results
+.git
+.github
+**/.env
+**/.env.*
+*.log
+.idea
+.vscode
+docs/assignment.pdf

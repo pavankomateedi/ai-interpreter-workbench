@@ -1,0 +1,56 @@
+name: Deploy to Elastic Beanstalk
+
+# Optional continuous deployment. Auto-deploys main to Elastic Beanstalk after
+# CI passes. Requires (one-time setup, see DEPLOY.md):
+#   - An existing EB application + environment (created via `eb create`).
+#   - Repo secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY.
+#   - Repo variables: AWS_REGION, EB_APPLICATION_NAME, EB_ENVIRONMENT_NAME.
+# Until those exist, this workflow no-ops (the guard job skips deployment).
+
+on:
+  workflow_run:
+    workflows: ['CI']
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    # Only deploy if CI succeeded (or when manually dispatched) and config exists.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check deploy configuration
+        id: cfg
+        run: |
+          if [ -n "${{ vars.EB_APPLICATION_NAME }}" ] && [ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::EB deploy not configured (missing secrets/variables); skipping."
+          fi
+
+      - name: Package source bundle
+        if: steps.cfg.outputs.ready == 'true'
+        run: |
+          zip -r deploy.zip . \
+            -x '*.git*' 'node_modules/*' '**/node_modules/*' '**/dist/*' \
+               'coverage/*' 'eval-results/*' 'test-results/*' 'playwright-report/*'
+
+      - name: Deploy to Elastic Beanstalk
+        if: steps.cfg.outputs.ready == 'true'
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ vars.AWS_REGION }}
+          application_name: ${{ vars.EB_APPLICATION_NAME }}
+          environment_name: ${{ vars.EB_ENVIRONMENT_NAME }}
+          version_label: ${{ github.sha }}
+          deployment_package: deploy.zip
+          wait_for_environment_recovery: 180
