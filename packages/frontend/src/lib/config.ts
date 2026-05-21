@@ -27,8 +27,18 @@ export interface WorkbenchConfig {
   models: { realtime: string; transcribe: string; tts: string; translation: string };
 }
 
-export async function fetchConfig(): Promise<WorkbenchConfig> {
-  const response = await fetch('/api/config');
-  if (!response.ok) throw new Error(`Failed to load config: ${response.status}`);
-  return (await response.json()) as WorkbenchConfig;
+export async function fetchConfig(retries = 5, delayMs = 600): Promise<WorkbenchConfig> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch('/api/config');
+      if (!response.ok) throw new Error(`Failed to load config: ${response.status}`);
+      return (await response.json()) as WorkbenchConfig;
+    } catch (err) {
+      // The backend may still be starting (dev) — retry a few times before giving up.
+      lastError = err;
+      if (attempt < retries) await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error('Failed to load config');
 }
