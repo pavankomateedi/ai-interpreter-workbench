@@ -34,6 +34,10 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
+      // TypeScript's own checker resolves undefined identifiers and global types
+      // (DOM, Node, AudioWorklet); ESLint's no-undef is redundant and would flag
+      // valid browser/node globals, so it is disabled for TS per typescript-eslint.
+      'no-undef': 'off',
       // The brief grades on provider abstractions and error handling, not style nits.
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unused-vars': [
