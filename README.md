@@ -2,8 +2,10 @@
 
 A browser-based single-page application that implements and benchmarks two live AI interpretation architectures side by side:
 
-- **Realtime mode** — OpenAI Realtime API (`gpt-4o-realtime-preview`) for direct voice-to-voice interpretation with sub-1.5 s latency
-- **Cascade mode** — Composable STT → Translation → TTS pipeline (Deepgram → Claude → OpenAI TTS) with full provider-swappability and per-stage observability
+- **Realtime mode** — OpenAI Realtime API (`gpt-realtime`) for direct voice-to-voice interpretation with sub-1.5 s latency
+- **Cascade mode** — Composable STT → Translation → TTS pipeline (OpenAI or Deepgram STT → Claude → OpenAI TTS) with full provider-swappability and per-stage observability
+
+> **Runs with zero API keys.** With no keys configured the app boots in mock/offline mode and the cascade runs end-to-end with deterministic mock providers — useful for development, tests, and the E2E suite. Realtime mode specifically requires an OpenAI key.
 
 Built for the [Boostlingo AI Interpreter Workbench assignment](./docs/assignment.pdf).
 
@@ -90,10 +92,10 @@ Built for the [Boostlingo AI Interpreter Workbench assignment](./docs/assignment
 |-------|-----------|-----|
 | Backend | Node.js + Fastify + TypeScript | Native async streaming, first-class WebSocket support via `@fastify/websocket`, excellent ecosystem for real-time audio pipelines. Fastify's schema validation prevents malformed provider responses from propagating. |
 | Frontend | React 18 + Vite + TypeScript | AudioWorklet requires a browser environment; React's concurrent mode handles rapid transcript updates without tearing. Vite's HMR loop is fast enough for iterative UI work on latency-sensitive features. |
-| STT (Cascade) | Deepgram | Streaming partial transcripts arrive at ~300 ms P95 TTFT vs. ~800 ms for Whisper via API — a material difference when the cascade E2E target is 2 s. Deepgram's `is_final` / `speech_final` distinction maps cleanly to the sentence-boundary detection stage. |
+| STT (Cascade) | OpenAI (default) · Deepgram (swappable) | OpenAI's Realtime transcription session is the default since it needs only the OpenAI key. Deepgram is implemented behind the same `ISttProvider` interface as a key-gated production alternative — its `is_final` / `speech_final` distinction maps cleanly to sentence-boundary detection. Swapping is one config line (`STT_PROVIDER`). |
 | Translation (Cascade) | Anthropic Claude (`claude-haiku-4-5`) | Haiku's streaming latency (first token < 200 ms) and translation accuracy on medical/legal domain text outperformed GPT-4o-mini in internal benchmarks on the golden data set. The provider abstraction makes it trivial to A/B this against other models. |
 | TTS (Cascade) | OpenAI TTS (`tts-1`) | Low-latency streaming, natural prosody, broad language support. `tts-1` prioritises speed over quality; `tts-1-hd` can be swapped in via env var if quality is preferred over latency. |
-| Realtime | OpenAI Realtime API (`gpt-4o-realtime-preview`) | The only production-ready voice-to-voice model available at the time of writing. The backend proxies WebSocket frames to avoid exposing the API key to the browser. |
+| Realtime | OpenAI Realtime API (`gpt-realtime`) | The production voice-to-voice model the brief requires. The backend proxies WebSocket frames to avoid exposing the API key to the browser, normalising events to the shared schema. |
 | Testing | Vitest + Playwright + nock | Vitest's ESM-native runner avoids CommonJS/ESM transform friction common in audio pipeline code. nock intercepts provider HTTP calls for deterministic integration tests. Playwright's fake mic API (`--use-fake-ui-for-media-stream`) enables full E2E testing without hardware. |
 | Package manager | pnpm | Workspace hoisting with strict isolation prevents phantom dependency issues across packages; disk-efficient symlink store. |
 
@@ -106,6 +108,7 @@ Built for the [Boostlingo AI Interpreter Workbench assignment](./docs/assignment
 ```
 ai-interpreter-workbench/
 ├── packages/
+│   ├── types/                    # @workbench/types — shared domain types (built first)
 │   ├── backend/                  # Fastify Node.js server
 │   │   ├── src/
 │   │   │   ├── providers/
@@ -206,10 +209,10 @@ ai-interpreter-workbench/
 
 - **Node.js** ≥ 20.0.0
 - **pnpm** ≥ 9.0.0 — `npm install -g pnpm`
-- **API keys** (see [Environment Variables](#environment-variables-reference)):
-  - OpenAI API key (Realtime + TTS)
-  - Anthropic API key (Translation)
-  - Deepgram API key (STT) — [free tier available](https://console.deepgram.com)
+- **API keys** — all optional; without them the app runs in mock/offline mode (see [Environment Variables](#environment-variables-reference)):
+  - OpenAI API key (Realtime mode, default cascade STT, TTS) — required for Realtime mode
+  - Anthropic API key (default cascade translation)
+  - Deepgram API key (optional, swappable cascade STT) — [free tier available](https://console.deepgram.com)
 - A browser with Web Audio API support (Chrome 94+, Firefox 103+, Safari 15.4+)
 
 ---
@@ -317,14 +320,15 @@ Copy `.env.example` to `.env` and fill in your values.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | ✅ | Master OpenAI key — backend only, never sent to browser |
-| `ANTHROPIC_API_KEY` | ✅ | Anthropic key for Claude translation |
-| `DEEPGRAM_API_KEY` | ✅ | Deepgram key for streaming STT |
+| `OPENAI_API_KEY` | Realtime + recommended | Backend only, never sent to browser. Required for Realtime mode; also the default cascade STT and TTS. |
+| `ANTHROPIC_API_KEY` | Recommended | Default Claude translation provider. Falls back to OpenAI or mock if absent. |
+| `DEEPGRAM_API_KEY` | Optional | Swappable cascade STT provider. Cascade STT defaults to OpenAI if unset. |
+| `STT_PROVIDER` / `TRANSLATION_PROVIDER` / `TTS_PROVIDER` | — | Select the preferred cascade provider per stage; each chain falls back to mock. |
 | `EVAL_API_KEY_OPENAI` | Eval only | Separate OpenAI key for eval runs |
 | `EVAL_API_KEY_DEEPGRAM` | Eval only | Separate Deepgram key for eval runs |
 | `EVAL_STORE_ENABLED` | — | Set `true` to write eval results to disk |
 | `OPENAI_TTS_MODEL` | — | Default: `tts-1`. Set `tts-1-hd` for higher quality |
-| `OPENAI_REALTIME_MODEL` | — | Default: `gpt-4o-realtime-preview` |
+| `OPENAI_REALTIME_MODEL` | — | Default: `gpt-realtime` |
 | `CLAUDE_MODEL` | — | Default: `claude-haiku-4-5` |
 | `LATENCY_THRESHOLD_REALTIME_MS` | — | Default: `1500`. Realtime E2E alert threshold |
 | `LATENCY_THRESHOLD_CASCADE_MS` | — | Default: `3000`. Cascade E2E alert threshold |
@@ -339,11 +343,11 @@ Copy `.env.example` to `.env` and fill in your values.
 
 | Code | Source | Target | STT Model | Translation | TTS Voice |
 |------|--------|--------|-----------|-------------|-----------|
-| `en-es` | English | Spanish | Deepgram `nova-2` | Claude | `alloy` |
-| `es-en` | Spanish | English | Deepgram `nova-2` | Claude | `alloy` |
-| `en-fr` | English | French | Deepgram `nova-2` | Claude | `nova` |
-| `en-de` | English | German | Deepgram `nova-2` | Claude | `onyx` |
-| `en-pt` | English | Portuguese | Deepgram `nova-2` | Claude | `shimmer` |
+| `en-es` | English | Spanish | OpenAI · Deepgram | Claude | `alloy` |
+| `es-en` | Spanish | English | OpenAI · Deepgram | Claude | `alloy` |
+| `en-fr` | English | French | OpenAI · Deepgram | Claude | `nova` |
+| `en-de` | English | German | OpenAI · Deepgram | Claude | `onyx` |
+| `en-pt` | English | Portuguese | OpenAI · Deepgram | Claude | `shimmer` |
 
 Adding a new language pair requires: (1) adding an entry to `packages/backend/src/config/languagePairs.ts`, (2) adding golden audio samples + reference translations to `golden-data/`, (3) running `pnpm eval:update-baselines`. No other code changes are required — this is the "time-to-onboard a new language pair" metric the assignment asks about.
 
