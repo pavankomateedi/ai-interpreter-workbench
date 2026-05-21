@@ -2,6 +2,8 @@
 
 _Measured across 20-turn sessions using the golden data set. All latency figures are P50 / P95 unless noted._
 
+> **Methodology.** Latency comes from the workbench's own per-stage instrumentation — the six `LatencyEvent` metrics the backend emits per turn, shown live in the UI dashboard and exported in the session-log JSON. Quality comes from `pnpm eval:run` (BLEU/chrF vs. human references; WER on transcription fixtures). The figures below are representative of runs against live providers; exact values depend on network, provider model versions, and the specific utterances — re-measure with `pnpm eval:run` and a few recorded sessions before quoting externally.
+
 ---
 
 ## 1. Latency
