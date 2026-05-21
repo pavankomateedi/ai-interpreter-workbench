@@ -32,7 +32,11 @@ export class MockTtsProvider implements ITtsProvider {
     const samplesPerChunk = Math.round((config.sampleRate * this.chunkMs) / 1000);
 
     for (let i = 0; i < chunkCount; i += 1) {
-      yield { type: 'chunk', audio: this.makeTone(samplesPerChunk, config.sampleRate, i) };
+      yield {
+        type: 'chunk',
+        audio: this.makeTone(samplesPerChunk, config.sampleRate, i),
+        sampleRate: config.sampleRate,
+      };
     }
     yield { type: 'final' };
   }

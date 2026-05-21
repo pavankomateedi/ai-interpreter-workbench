@@ -19,7 +19,7 @@ export interface TtsConfig {
 }
 
 export type TtsEvent =
-  | { readonly type: 'chunk'; readonly audio: Uint8Array }
+  | { readonly type: 'chunk'; readonly audio: Uint8Array; readonly sampleRate: number }
   | { readonly type: 'final' };
 
 export interface ITtsProvider {
