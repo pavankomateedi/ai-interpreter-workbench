@@ -1,0 +1,40 @@
+{
+  "name": "ai-interpreter-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser-based workbench benchmarking OpenAI Realtime API vs. a composable STT->Translation->TTS cascade pipeline for live interpretation.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "build": "pnpm --filter @workbench/types build && pnpm -r --filter=!@workbench/types build",
+    "dev": "pnpm --filter @workbench/types build && concurrently -n backend,frontend -c blue,magenta \"pnpm --filter @workbench/backend dev\" \"pnpm --filter @workbench/frontend dev\"",
+    "test": "pnpm --filter @workbench/types build && pnpm --filter @workbench/backend test",
+    "test:coverage": "pnpm --filter @workbench/types build && pnpm --filter @workbench/backend test:coverage",
+    "test:watch": "pnpm --filter @workbench/backend test:watch",
+    "test:e2e": "playwright test",
+    "eval:run": "pnpm --filter @workbench/types build && pnpm --filter @workbench/eval run:eval",
+    "eval:compare": "pnpm --filter @workbench/eval compare",
+    "eval:update-baselines": "pnpm --filter @workbench/eval update-baselines",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
+    "typecheck": "pnpm --filter @workbench/types build && pnpm -r exec tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@playwright/test": "^1.49.1",
+    "@types/node": "^22.10.5",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  }
+}
