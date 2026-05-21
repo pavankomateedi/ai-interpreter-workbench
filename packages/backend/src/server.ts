@@ -5,6 +5,8 @@
  * server; the browser never receives them.
  */
 
+import { realpathSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -60,8 +62,20 @@ async function main(): Promise<void> {
   }
 }
 
-// Only auto-start when run directly (not when imported by tests).
-const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/'));
-if (isMain || process.env.START_SERVER === 'true') {
+// Auto-start when this file is the process entry point (works under `node
+// dist/server.js`, `tsx watch src/server.ts`, and `START_SERVER=true`), but not
+// when imported by tests.
+function isEntryPoint(): boolean {
+  if (process.env.START_SERVER === 'true') return true;
+  const entry = process.argv[1];
+  if (!entry) return false;
+  try {
+    return realpathSync(entry).toLowerCase() === fileURLToPath(import.meta.url).toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+if (isEntryPoint()) {
   void main();
 }
