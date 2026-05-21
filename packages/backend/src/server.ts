@@ -15,6 +15,7 @@ import { env } from './config/env.js';
 import { logger } from './lib/logger.js';
 import { registerHttpRoutes } from './routes/http.js';
 import { registerWsRoutes } from './routes/ws.js';
+import { registerStaticFrontend } from './routes/static.js';
 
 export async function buildServer() {
   const app = Fastify({
@@ -44,6 +45,10 @@ export async function buildServer() {
     registerWsRoutes(instance);
   });
   registerHttpRoutes(app);
+
+  // In production, serve the built SPA from this same service (single origin).
+  const servingStatic = await registerStaticFrontend(app);
+  app.log.info({ servingStatic }, servingStatic ? 'serving built frontend' : 'api-only (no built frontend)');
 
   return app;
 }
