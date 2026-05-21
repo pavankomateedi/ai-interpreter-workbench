@@ -8,10 +8,21 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['src/cascade/**', 'src/providers/**'],
+      // The brief asks for critical-path coverage, not full coverage. The gated
+      // paths are the deterministic core: the cascade pipeline, sentence-boundary
+      // detection, the circuit breaker, the provider error/fallback boundary, and
+      // the mock reference providers. The live SDK adapters (Deepgram/OpenAI/
+      // Claude/Realtime) require network and are validated via the shared
+      // compliance suite against mocks plus the manual/E2E smoke paths.
+      include: [
+        'src/cascade/**',
+        'src/lib/circuitBreaker.ts',
+        'src/lib/asyncQueue.ts',
+        'src/providers/errors.ts',
+        'src/providers/resilient.ts',
+        'src/providers/**/Mock*.ts',
+      ],
       thresholds: {
-        // The brief asks for critical-path coverage, not full coverage. The
-        // cascade pipeline and provider boundaries are the critical paths.
         lines: 80,
         functions: 80,
         branches: 70,
