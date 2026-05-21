@@ -1,0 +1,48 @@
+# ── Environment ───────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-store/
+
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# ── Test & Coverage ───────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# ── Eval results (run outputs — NOT baselines.json) ───────────────────────────
+eval-results/
+# Keep baselines committed:
+!golden-data/baselines.json
+
+# ── Golden data fixtures (committed, but not recorded outputs) ────────────────
+# Fixtures are committed. Don't ignore golden-data/.
+# Only ignore fixture recording temp files:
+golden-data/fixtures/*.tmp
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.tgz
+.turbo/
