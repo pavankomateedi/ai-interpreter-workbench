@@ -1,0 +1,24 @@
+{
+  "name": "@workbench/eval",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "run:eval": "tsx src/runner.ts",
+    "compare": "tsx src/compare.ts",
+    "update-baselines": "tsx src/runner.ts --update-baselines",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "@workbench/types": "workspace:*",
+    "dotenv": "^16.4.7",
+    "openai": "^4.79.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
