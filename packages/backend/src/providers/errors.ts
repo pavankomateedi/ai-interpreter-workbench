@@ -71,7 +71,7 @@ export function classifyProviderError(err: unknown, provider: string): ProviderE
 
   if (status === 429) return new ProviderRateLimitError(message, provider, cause);
   if (status === 401 || status === 403) return new ProviderAuthError(message, provider, cause);
-  if (status === 408 || /time?out/i.test(message)) {
+  if (status === 408 || /timed?\s*out|timeout/i.test(message)) {
     return new ProviderTimeoutError(message, provider, cause);
   }
   if (/econn|socket|network|disconnect|closed/i.test(message)) {
