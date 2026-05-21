@@ -1,0 +1,10 @@
+{
+  "note": "Baseline metric values for regression comparison. Update with `pnpm eval:update-baselines` after a reviewed quality change. Seeded conservatively; re-measure against live providers to set real baselines.",
+  "updatedAt": "2026-05-21T00:00:00.000Z",
+  "translator": "seed",
+  "metrics": {
+    "bleu": 0.6,
+    "chrf": 0.7,
+    "wer": 0.15
+  }
+}

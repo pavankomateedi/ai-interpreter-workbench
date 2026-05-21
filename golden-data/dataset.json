@@ -1,0 +1,74 @@
+{
+  "description": "Human-verified golden data for the AI Interpreter Workbench eval suite. Translation cases score BLEU/chrF; transcription fixtures (recorded STT outputs) score WER.",
+  "translation": [
+    {
+      "id": "TRN-EN-ES-001",
+      "languagePair": "en-es",
+      "domain": "medical",
+      "sourceText": "The patient has hypertension and needs a dosage adjustment.",
+      "referenceTranslation": "El paciente tiene hipertensión y necesita un ajuste de la dosis."
+    },
+    {
+      "id": "TRN-EN-ES-002",
+      "languagePair": "en-es",
+      "domain": "medical",
+      "sourceText": "He reported chest pain and shortness of breath.",
+      "referenceTranslation": "Refirió dolor torácico y dificultad para respirar."
+    },
+    {
+      "id": "TRN-EN-ES-003",
+      "languagePair": "en-es",
+      "domain": "legal",
+      "sourceText": "Do you understand the charges against you?",
+      "referenceTranslation": "¿Entiende los cargos en su contra?"
+    },
+    {
+      "id": "TRN-EN-ES-004",
+      "languagePair": "en-es",
+      "domain": "legal",
+      "sourceText": "You have the right to remain silent.",
+      "referenceTranslation": "Tiene derecho a guardar silencio."
+    },
+    {
+      "id": "TRN-EN-ES-005",
+      "languagePair": "en-es",
+      "domain": "general",
+      "sourceText": "Where is the nearest pharmacy?",
+      "referenceTranslation": "¿Dónde está la farmacia más cercana?"
+    },
+    {
+      "id": "TRN-EN-FR-001",
+      "languagePair": "en-fr",
+      "domain": "general",
+      "sourceText": "Where is the nearest pharmacy?",
+      "referenceTranslation": "Où est la pharmacie la plus proche ?"
+    },
+    {
+      "id": "TRN-EN-DE-001",
+      "languagePair": "en-de",
+      "domain": "general",
+      "sourceText": "Where is the nearest pharmacy?",
+      "referenceTranslation": "Wo ist die nächste Apotheke?"
+    }
+  ],
+  "transcription": [
+    {
+      "id": "STT-EN-001",
+      "languagePair": "en-es",
+      "referenceTranscript": "the patient has hypertension and needs a dosage adjustment",
+      "candidateTranscript": "the patient has hypertension and needs a dosage adjustment"
+    },
+    {
+      "id": "STT-EN-002",
+      "languagePair": "en-es",
+      "referenceTranscript": "he reported chest pain and shortness of breath",
+      "candidateTranscript": "he reported chest pain and shortness of breathe"
+    },
+    {
+      "id": "STT-EN-003",
+      "languagePair": "en-es",
+      "referenceTranscript": "you have the right to remain silent",
+      "candidateTranscript": "you have the right to remain silent"
+    }
+  ]
+}
