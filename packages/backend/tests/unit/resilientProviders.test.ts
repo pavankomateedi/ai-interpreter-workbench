@@ -3,16 +3,23 @@ import { CircuitBreaker } from '../../src/lib/circuitBreaker.js';
 import {
   ResilientSttProvider,
   ResilientTranslationProvider,
+  ResilientTtsProvider,
   type Candidate,
 } from '../../src/providers/resilient.js';
 import { MockTranslationProvider } from '../../src/providers/translation/MockTranslationProvider.js';
 import { MockSttProvider } from '../../src/providers/stt/MockSttProvider.js';
+import { MockTtsProvider } from '../../src/providers/tts/MockTtsProvider.js';
 import { ProviderRateLimitError } from '../../src/providers/errors.js';
 import type {
   ITranslationProvider,
   TranslationConfig,
   TranslationEvent,
 } from '../../src/providers/translation/ITranslationProvider.js';
+import type {
+  ITtsProvider,
+  TtsConfig,
+  TtsEvent,
+} from '../../src/providers/tts/ITtsProvider.js';
 
 const OPTS = { enabled: true, errorThreshold: 1, windowMs: 1000, openDurationMs: 500 };
 
@@ -69,6 +76,33 @@ describe('ResilientTranslationProvider', () => {
 
     expect(spy).not.toHaveBeenCalled();
     expect(events.some((e) => e.type === 'final')).toBe(true);
+  });
+});
+
+class FailingTtsProvider implements ITtsProvider {
+  readonly id = 'tts:failing';
+  // eslint-disable-next-line require-yield
+  async *synthesizeStream(_t: string, _c: TtsConfig): AsyncIterable<TtsEvent> {
+    throw new ProviderRateLimitError('rate limited', this.id);
+  }
+  async close(): Promise<void> {}
+}
+
+describe('ResilientTtsProvider', () => {
+  it('falls back to the next TTS provider on a pre-yield failure', async () => {
+    const failing = new FailingTtsProvider();
+    const mock = new MockTtsProvider();
+    const resilient = new ResilientTtsProvider([
+      { provider: failing, breaker: new CircuitBreaker(failing.id, OPTS) },
+      { provider: mock, breaker: new CircuitBreaker(mock.id, OPTS) },
+    ]);
+
+    const events: TtsEvent[] = [];
+    for await (const ev of resilient.synthesizeStream('Hola.', { voice: 'alloy', sampleRate: 16000 })) {
+      events.push(ev);
+    }
+    expect(events.some((e) => e.type === 'chunk')).toBe(true);
+    expect(events.at(-1)?.type).toBe('final');
   });
 });
 
