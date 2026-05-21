@@ -69,6 +69,7 @@ export type ErrorCode =
   | 'provider_rate_limit'
   | 'provider_timeout'
   | 'provider_connection'
+  | 'provider_auth'
   | 'provider_empty_result'
   | 'circuit_open'
   | 'session_limit'
