@@ -11,6 +11,43 @@ accepts local-only; see "Run the container locally" at the bottom.
 
 ---
 
+## 0. Live environment
+
+Deployed and verified (SPA, REST, and the WebSocket cascade all working):
+
+- **URL:** <http://ai-interpreter-workbench.us-east-2.elasticbeanstalk.com>
+- **Region:** us-east-2 · **App:** `interpreter-workbench` · **Env:** `interpreter-workbench-env` (`e-vajwgqm8ig`)
+- **Platform:** 64bit Amazon Linux 2023 running Docker, single instance (`t3.small`)
+
+### Add API keys (enables real interpretation; Realtime needs OpenAI)
+
+```powershell
+& "C:\Program Files\Amazon\AWSCLIV2\aws.exe" elasticbeanstalk update-environment `
+  --environment-id e-vajwgqm8ig --option-settings `
+  "Namespace=aws:elasticbeanstalk:application:environment,OptionName=OPENAI_API_KEY,Value=sk-REPLACE" `
+  "Namespace=aws:elasticbeanstalk:application:environment,OptionName=ANTHROPIC_API_KEY,Value=sk-ant-REPLACE"
+```
+
+### Redeploy after a change
+
+```powershell
+$aws="C:\Program Files\Amazon\AWSCLIV2\aws.exe"; $sha=(git rev-parse --short HEAD).Trim()
+git archive --format=zip -o "$env:TEMP\b.zip" HEAD
+& $aws s3 cp "$env:TEMP\b.zip" "s3://elasticbeanstalk-us-east-2-119112823258/interpreter-workbench/app-$sha.zip"
+& $aws elasticbeanstalk create-application-version --application-name interpreter-workbench --version-label "v-$sha" --source-bundle "S3Bucket=elasticbeanstalk-us-east-2-119112823258,S3Key=interpreter-workbench/app-$sha.zip"
+& $aws elasticbeanstalk update-environment --environment-id e-vajwgqm8ig --version-label "v-$sha"
+```
+
+> **EB + WebSockets note.** On the AL2023 Docker platform the container port is
+> EXPOSEd but not host-published, so EB proxies over the Docker bridge
+> (`172.17.0.2:3001`). [`.platform/nginx/conf.d/elasticbeanstalk/websocket.conf`](./.platform/nginx/conf.d/elasticbeanstalk/websocket.conf)
+> targets that address and adds the upgrade headers — without it, `/ws/*` 502s.
+
+The CLI recipe below (Section 1+) is the from-scratch path if recreating the
+environment.
+
+---
+
 ## 1. Prerequisites
 
 - An AWS account with permissions for Elastic Beanstalk, EC2, S3, and IAM.

@@ -7,6 +7,8 @@ A browser-based single-page application that implements and benchmarks two live 
 
 > **Runs with zero API keys.** With no keys configured the app boots in mock/offline mode and the cascade runs end-to-end with deterministic mock providers — useful for development, tests, and the E2E suite. Realtime mode specifically requires an OpenAI key.
 
+**Live demo:** <http://ai-interpreter-workbench.us-east-2.elasticbeanstalk.com> (AWS Elastic Beanstalk). See [DEPLOY.md](./DEPLOY.md).
+
 Built for the [Boostlingo AI Interpreter Workbench assignment](./docs/assignment.pdf).
 
 ---
